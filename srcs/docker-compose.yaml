@@ -1,0 +1,77 @@
+services:
+  nginx:
+    container_name: nginx
+    image: nginx
+    build: requirements/nginx
+    ports:
+      - "443:443"
+    networks: 
+      - inc_network
+    depends_on: 
+      - wordpress
+    env_file: .env
+    volumes: 
+      - website:/var/www/html/
+    restart: always
+
+  wordpress:
+    image: wordpress
+    container_name: wordpress
+    build: requirements/wordpress
+    networks: 
+      - inc_network
+    depends_on: 
+      - mariadb
+    env_file: .env
+    volumes: 
+      - website:/var/www/html
+    restart: always
+
+  mariadb:
+    container_name: mariadb
+    image: mariadb
+    build: requirements/mariadb
+    networks:
+      - inc_network
+    volumes: 
+      - database:/var/lib/mysql/
+    env_file: .env
+    restart: always
+  adminer:
+    container_name: adminer
+    image: adminer
+    build: requirements/bonus/adminer
+    networks: 
+      - inc_network
+    ports:
+      - "8080:80"
+    restart: always
+    depends_on: 
+      - mariadb
+  static_website:
+    container_name: static_website
+    image: static_website
+    build: requirements/bonus/static_website
+    ports:
+      - "8181:80"
+    networks: 
+      - inc_network
+    restart: always
+
+
+networks:
+  inc_network:
+    name: inc_network
+    driver: bridge
+  
+volumes:
+  website:
+    driver_opts:
+      type: none
+      device: /home/smarsi/data/wordpress/
+      o: bind
+  database:
+    driver_opts:
+      type: none
+      device: /home/smarsi/data/mariadb/
+      o: bind
